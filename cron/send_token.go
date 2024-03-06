@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/savioxavier/termlink"
 	tele "gopkg.in/telebot.v3"
 
@@ -175,24 +176,24 @@ func SendToken(token *yaml.TokenConfig) {
 			sleep = 5
 			continue
 		}
-		//amountBigInt := blockchain.AmountToBigInt(tokenAmount, 18)
-		//amountBigFloat := blockchain.BigIntToBigFloat(amountBigInt, 18)
-		//AmountString := blockchain.BigFloatToString(amountBigFloat)
-		//var transferToken *types.Transaction
-		//transferToken, err = contract.TransferToken(tokenWallet, common.HexToAddress(wal.Address), tokenAmount)
-		//if err != nil {
-		//	sendMu.Unlock()
-		//	log.Errorf("[%s] Wallet (%v) failed to send %s to address %s", cColors.Sprint(name), tokenWallet.AddressMask(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
-		//	continue
-		//}
-		//err = wal.AddTX(symbol, transferToken.Hash().String(), tokenAmount)
-		//if err != nil {
-		//	log.Fatalf("[%s] Wallet (%v) failed to add TX \"%s\" with amount %s, %s", cColors.Sprint(name), tokenWallet.AddressMask(), transferToken.Hash().String(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
-		//	sendMu.Unlock()
-		//	continue
-		//}
-		//tx := transferToken.Hash().String()
-		tx := "non"
+		amountBigInt := blockchain.AmountToBigInt(tokenAmount, 18)
+		amountBigFloat := blockchain.BigIntToBigFloat(amountBigInt, 18)
+		AmountString := blockchain.BigFloatToString(amountBigFloat)
+		var transferToken *types.Transaction
+		transferToken, err = contract.TransferToken(tokenWallet, common.HexToAddress(wal.Address), tokenAmount)
+		if err != nil {
+			sendMu.Unlock()
+			log.Errorf("[%s] Wallet (%v) failed to send %s to address %s", cColors.Sprint(name), tokenWallet.AddressMask(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
+			continue
+		}
+		err = wal.AddTX(symbol, transferToken.Hash().String(), tokenAmount)
+		if err != nil {
+			log.Fatalf("[%s] Wallet (%v) failed to add TX \"%s\" with amount %s, %s", cColors.Sprint(name), tokenWallet.AddressMask(), transferToken.Hash().String(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
+			sendMu.Unlock()
+			continue
+		}
+		tx := transferToken.Hash().String()
+		//tx := "non"
 
 		var tokenBalance *big.Int
 		tokenBalance, err = contract.GetTokenBalance(tokenWallet.Address())
