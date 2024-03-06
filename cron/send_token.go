@@ -233,7 +233,7 @@ func SendToken(token *yaml.TokenConfig) {
 		to := fmt.Sprintf("<a href='https://bscscan.com/address/%s'>%s</a>", wal.Address, wal.AddressMask())
 		_from := fmt.Sprintf("<a href='https://bscscan.com/address/%s'>%s</a>", tokenWallet.AddressMask(true), tokenWallet.Address().String())
 		_tx := fmt.Sprintf("<a href='https://bscscan.com/tx/%s'>Transaction</a>", tx)
-		text := "✅ %s • %d • Next in %ds\n\n🔁 From: %s\n\n➡️ To: %s\n\n💰 Amount: %.3f %s ($%.3f) • %s\n\n📉 Remaining %s, %s"
+		text := "✅ %s • %d • Next in %ds\n\n🔁 From: %s\n\n➡️ To: %s\n\n💰 Amount: %.3f %s ($%.3f) • %s\n\n📉 Remaining: %s • %s"
 		text = fmt.Sprintf(text, name, token.Counter, sleep, _from, to, tokenAmount, symbol, airdropAmount, _tx, b, c)
 		bot.Send(&tele.Chat{ID: database.Config.TelegramBot.AnnounceChannel}, text, tele.NoPreview, tele.ModeHTML)
 		token.Counter++
