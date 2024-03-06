@@ -46,3 +46,4 @@ services:
       - net
     depends_on:
       - db
+      - phpmyadmin

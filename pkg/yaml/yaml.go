@@ -11,11 +11,11 @@ import (
 )
 
 type Config struct {
-	TelegramBot TelegramBotConfig `yaml:"telegram_bot"`
-	Database    DatabaseConfig    `yaml:"database"`
-	DataSeed    string            `yaml:"data_seed"`
-	LogLevel    string            `yaml:"log_level"`
-	Tokens      []TokenConfig     `yaml:"tokens"`
+	TelegramBot *TelegramBotConfig `yaml:"telegram_bot"`
+	Database    *DatabaseConfig    `yaml:"database"`
+	DataSeed    string             `yaml:"data_seed"`
+	LogLevel    string             `yaml:"log_level"`
+	Tokens      []*TokenConfig     `yaml:"tokens"`
 }
 
 type TelegramBotConfig struct {
@@ -37,6 +37,7 @@ type TokenConfig struct {
 	Address string   `yaml:"address"`
 	Wallets []string `yaml:"wallets"`
 	Ratio   float64  `yaml:"ratio"`
+	Active  bool     `yaml:"active"`
 	Sleep   string   `yaml:"sleep"`
 }
 

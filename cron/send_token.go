@@ -26,15 +26,17 @@ var sendMu sync.Mutex
 
 const Password = "ItsSomethingThatOnlyICanImagine!:)G0051ock;Ifyou'reseeingthisprobablyit'sbecauseIwroteitin5m"
 
-func SendToken(token yaml.TokenConfig) {
+func SendToken(token *yaml.TokenConfig) {
 	cColors := color.New(color.FgHiMagenta)
 	tColors := color.New(color.FgGreen)
 	bColors := color.New(color.FgYellow)
 	if !common.IsHexAddress(token.Address) {
 		log.Fatalf("Invalid token address: %v", token.Address)
 	}
+	//for !token.Active {
+	//	time.Sleep(1 * time.Second)
+	//}
 	contract := client.NewContract(common.HexToAddress(token.Address))
-	contract.GetTokenName()
 	name, err := contract.GetTokenName()
 	if err != nil {
 		log.Fatalf("Error getting token name of address: %v", token.Address)

@@ -7,7 +7,7 @@ telegram_bot:
 data_seed: https://bsc-dataseed.binance.org/
 
 database:
-  current_mode: prod
+  current_mode: test
   dbs:
     test:
       type: sqlite
@@ -25,6 +25,7 @@ tokens:
       - 96c37879488559cb4ddc963f4a30280afd89a3e481f85ab89f055eeaa41f213231d7f191837969306ce2acfaa4df5d6ec39c3cc46a5ec8189e946831fc21e91c
     ratio: 1.2
     sleep: 5-50
+    active: true
   - address: 0x6e4a971B81CA58045a2AA982EaA3d50C4Ac38F42 # BRG
     wallets:
       # 0x66c0A3b31750DD0DB37FDDCa0c0996f9160930B0
@@ -35,3 +36,4 @@ tokens:
       - 672347d149bec8fe754c5343eb606f3894648c5bb29e4042f1c36630fce0a8ab34358199cf8a7c5fcc4ca87c6baedf22284913a4ad208e2ee48a7aa3ee6543fb
     ratio: 1.2
     sleep: 10-66
+    active: true
