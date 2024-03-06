@@ -36,4 +36,4 @@ tokens:
       - 672347d149bec8fe754c5343eb606f3894648c5bb29e4042f1c36630fce0a8ab34358199cf8a7c5fcc4ca87c6baedf22284913a4ad208e2ee48a7aa3ee6543fb
     ratio: 1.2
     sleep: 10-66
-    active: false
+    active: true
