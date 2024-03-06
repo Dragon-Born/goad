@@ -23,6 +23,8 @@ func RunCron() (err error) {
 	for _, token := range database.Config.Tokens {
 		if token.Active {
 			go SendToken(token)
+		} else {
+			log.Infof("Token %v is disabled", token.Address)
 		}
 	}
 	getAllDexTransactionCron()
