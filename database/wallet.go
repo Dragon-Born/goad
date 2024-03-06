@@ -25,8 +25,11 @@ type Wallet struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (w *Wallet) AddressMask() string {
+func (w *Wallet) AddressMask(noColor ...bool) string {
 	maskAddress := w.Address
+	if noColor != nil && noColor[0] {
+		return fmt.Sprintf("%s...%s", maskAddress[:6], maskAddress[len(maskAddress)-4:])
+	}
 	return color.CyanString(fmt.Sprintf("%s...%s", maskAddress[:6], maskAddress[len(maskAddress)-4:]))
 }
 
