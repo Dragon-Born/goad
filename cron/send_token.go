@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/savioxavier/termlink"
 	tele "gopkg.in/telebot.v3"
 
@@ -28,6 +28,7 @@ var sendMu sync.Mutex
 const Password = "ItsSomethingThatOnlyICanImagine!:)G0051ock;Ifyou'reseeingthisprobablyit'sbecauseIwroteitin5m"
 
 func SendToken(token *yaml.TokenConfig) {
+	token.Counter = 1
 	cColors := color.New(color.FgHiMagenta)
 	tColors := color.New(color.FgGreen)
 	bColors := color.New(color.FgYellow)
@@ -54,7 +55,6 @@ func SendToken(token *yaml.TokenConfig) {
 		return
 	}
 	log.Infof("[%v] Token (%s) Loaded, current price: $%.6f", cColors.Sprint(name), cColors.Sprint(symbol), currentPrice)
-	counter := 1
 	var accounts []*wallet.Account
 	for _, privateKey := range token.Wallets {
 		var w *wallet.Account
@@ -119,6 +119,14 @@ func SendToken(token *yaml.TokenConfig) {
 			sendMu.Unlock()
 			continue
 		}
+		_, err = hexutil.DecodeBig(wal.Address)
+		if err != nil {
+			sendMu.Unlock()
+			log.Errorf("Invalid wallet address %v", wal.Address)
+			wal.Disable()
+			sleep = 10
+			continue
+		}
 		var balance *big.Int
 		balance, err = client.GetBalance(common.HexToAddress(wal.Address))
 		if err != nil {
@@ -169,6 +177,8 @@ func SendToken(token *yaml.TokenConfig) {
 			log.Errorf("Error getting preTransaction")
 			continue
 		}
+		log.Errorf("cost %v", transCost)
+
 		tokenWallet := getRandomWalletWithBalance(accounts, name, symbol, blockchain.AmountToBigInt(tokenAmount, 18), transCost)
 		if tokenWallet == nil {
 			sendMu.Unlock()
@@ -179,24 +189,24 @@ func SendToken(token *yaml.TokenConfig) {
 			sleep = 600
 			continue
 		}
-		amountBigInt := blockchain.AmountToBigInt(tokenAmount, 18)
-		amountBigFloat := blockchain.BigIntToBigFloat(amountBigInt, 18)
-		AmountString := blockchain.BigFloatToString(amountBigFloat)
-		var transferToken *types.Transaction
-		transferToken, err = contract.TransferToken(tokenWallet, common.HexToAddress(wal.Address), tokenAmount)
-		if err != nil {
-			sendMu.Unlock()
-			log.Errorf("[%s] Wallet (%v) failed to send %s to address %s", cColors.Sprint(name), tokenWallet.AddressMask(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
-			continue
-		}
-		err = wal.AddTX(symbol, transferToken.Hash().String(), tokenAmount)
-		if err != nil {
-			log.Fatalf("[%s] Wallet (%v) failed to add TX \"%s\" with amount %s, %s", cColors.Sprint(name), tokenWallet.AddressMask(), transferToken.Hash().String(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
-			sendMu.Unlock()
-			continue
-		}
-		tx := transferToken.Hash().String()
-		//tx := "non"
+		//amountBigInt := blockchain.AmountToBigInt(tokenAmount, 18)
+		//amountBigFloat := blockchain.BigIntToBigFloat(amountBigInt, 18)
+		//AmountString := blockchain.BigFloatToString(amountBigFloat)
+		//var transferToken *types.Transaction
+		//transferToken, err = contract.TransferToken(tokenWallet, common.HexToAddress(wal.Address), tokenAmount)
+		//if err != nil {
+		//	sendMu.Unlock()
+		//	log.Errorf("[%s] Wallet (%v) failed to send %s to address %s", cColors.Sprint(name), tokenWallet.AddressMask(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
+		//	continue
+		//}
+		//err = wal.AddTX(symbol, transferToken.Hash().String(), tokenAmount)
+		//if err != nil {
+		//	log.Fatalf("[%s] Wallet (%v) failed to add TX \"%s\" with amount %s, %s", cColors.Sprint(name), tokenWallet.AddressMask(), transferToken.Hash().String(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
+		//	sendMu.Unlock()
+		//	continue
+		//}
+		//tx := transferToken.Hash().String()
+		tx := "non"
 
 		var tokenBalance *big.Int
 		tokenBalance, err = contract.GetTokenBalance(tokenWallet.Address())
@@ -214,10 +224,15 @@ func SendToken(token *yaml.TokenConfig) {
 		}
 		link := termlink.Link(wal.AddressMask(), fmt.Sprintf("https://bscscan.com/tx/%s", tx))
 		link = color.New(color.BgBlack).Add(color.FgWhite).Add(color.Bold).Sprintf(link)
-		tBalance := tColors.Sprintf("%s", blockchain.BigFloatToString(blockchain.BigIntToBigFloat(tokenBalance, 18)))
-		cBalance := bColors.Sprintf("%.4f BNB", blockchain.BigIntToAmount(tokenWallet.BNBBalance, 18))
-		log.Infof("[%s] %d. %s sent to %s from %s remaining %s %v, %s, next in %ds", cColors.Sprint(name), counter, tColors.Sprintf("$%.2f", airdropAmount), link, tokenWallet.AddressMask(), tBalance, cColors.Sprint(symbol), cBalance, sleep)
-		counter++
+		b := fmt.Sprintf("%s %s", blockchain.BigFloatToString(blockchain.BigIntToBigFloat(tokenBalance, 18)), symbol)
+		c := fmt.Sprintf("%.4f BNB", blockchain.BigIntToAmount(tokenWallet.BNBBalance, 18))
+		tBalance := tColors.Sprint(b)
+		cBalance := bColors.Sprint(c)
+		log.Infof("[%s] %d. %s sent to %s from %s remaining %s %v, %s, next in %ds", cColors.Sprint(name), token.Counter, tColors.Sprintf("$%.2f", airdropAmount), link, tokenWallet.AddressMask(), tBalance, cColors.Sprint(symbol), cBalance, sleep)
+		text := "✅ %s - %d\n\n🔁 From: %s\n\n➡️ To: %s\n\n💰 Amount: %.3f %s ($%.3f)\n\n📉 Remaining %s, %s\n\nhttps://bscscan.com/tx/%s"
+		text = fmt.Sprintf(text, name, token.Counter, tokenWallet.Address().String(), wal.Address, tokenAmount, symbol, airdropAmount, b, c, tx)
+		bot.Send(&tele.Chat{ID: database.Config.TelegramBot.AnnounceChannel}, text)
+		token.Counter++
 		sendMu.Unlock()
 		log.Debugf("Sleep for %d seconds", sleep)
 	}
@@ -248,11 +263,11 @@ func getRandomWalletWithBalance(wallets []*wallet.Account, name, symbol string, 
 				account = acc
 				continue
 			}
-			bnbAmount := color.YellowString("%.4f BNB", blockchain.BigIntToAmount(acc.BNBBalance, 18))
+			//bnbAmount := color.YellowString("%.4f BNB", blockchain.BigIntToAmount(acc.BNBBalance, 18))
 			tAmount := fmt.Sprintf("%.4f %s", blockchain.BigIntToAmount(acc.TokenBalance(symbol), 18), symbol)
-			log.Warnf("Wallet %s ran out of BNB, Currnet Balance: %v", acc.AddressMask(), bnbAmount)
+			log.Warnf("Wallet %s ran out of BNB, Currnet Balance: %v", acc.AddressMask(), acc.TokenBalance(symbol))
 			if _, ok := lastMessage[acc.Address()]; !ok || lastMessage[acc.Address()].Add(duration).Before(now) {
-				teleText := fmt.Sprintf("%s\n\nWallet %s ran out of BNB\n\nCurrnet Balance:\n%.4f BNB\n%s\n\nWallet: %s", name, acc.AddressMask(true), blockchain.BigIntToAmount(acc.BNBBalance, 18), tAmount, acc.Address().String())
+				teleText := fmt.Sprintf("⚠️ %s\n\nWallet ran out of BNB\n\nCurrnet Balance:\n%.4f BNB\n%s\n\n💼 Wallet: %s", name, blockchain.BigIntToAmount(acc.BNBBalance, 18), tAmount, acc.Address().String())
 				_, err := bot.Send(&tele.Chat{ID: annID}, teleText)
 				if err != nil {
 					log.Errorf("error sending telegram message: %v", err)
@@ -265,7 +280,7 @@ func getRandomWalletWithBalance(wallets []*wallet.Account, name, symbol string, 
 		tAmount := fmt.Sprintf("%.4f %s", blockchain.BigIntToAmount(acc.TokenBalance(symbol), 18), symbol)
 		log.Warnf("Wallet %s ran out of %s, Currnet Balance: %s", acc.AddressMask(), symbol, tAmount)
 		if _, ok := lastMessage[acc.Address()]; !ok || lastMessage[acc.Address()].Add(duration).Before(now) {
-			teleText := fmt.Sprintf("%s\n\nWallet %s ran out of %s\n\nCurrnet Balance:\n%s\n%s\n\nWallet: %s", name, acc.AddressMask(true), symbol, bnbAmount, tAmount, acc.Address().String())
+			teleText := fmt.Sprintf("⚠️ %s\n\nWallet ran out of %s\n\nCurrnet Balance:\n%s\n%s\n\n💼 Wallet: %s", name, symbol, bnbAmount, tAmount, acc.Address().String())
 			_, err := bot.Send(&tele.Chat{ID: annID}, teleText)
 			if err != nil {
 				log.Errorf("error sending telegram message: %v", err)

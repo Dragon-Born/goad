@@ -52,7 +52,6 @@ func (c *Client) CalculateCost(tokenAddress common.Address) (*big.Int, error) {
 		return nil, err
 	}
 
-	// Estimate gas limit
 	gasLimit, err := c.client.EstimateGas(context.Background(), ethereum.CallMsg{
 		From: tokenAddress,
 	})
@@ -60,8 +59,9 @@ func (c *Client) CalculateCost(tokenAddress common.Address) (*big.Int, error) {
 		return nil, err
 	}
 
-	gasLimitBigInt := big.NewInt(0).SetUint64(gasLimit)
+	gasLimitBigInt := big.NewInt(0).SetUint64(gasLimit + (gasLimit * 20 / 100))
 	totalCost := big.NewInt(0).Mul(gasPrice, gasLimitBigInt)
+
 	return totalCost, nil
 }
 
@@ -83,11 +83,11 @@ func (c *Client) GetPreTransaction(accountAddress, tokenAddress common.Address) 
 	return &PreTransaction{
 		nonce:    nonce,
 		gasPrice: gasPrice,
-		gasLimit: gasLimit + (gasLimit * 5 / 100),
+		gasLimit: gasLimit + (gasLimit * 20 / 100),
 	}, nil
 }
 
-func (c *Client) Transfer(from wallet.Account, to common.Address, amount *big.Float) (*types.Transaction, error) {
+func (c *Client) Transfer(from *wallet.Account, to common.Address, amount *big.Float) (*types.Transaction, error) {
 	b, err := c.GetBalance(from.Address())
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (c *Client) Transfer(from wallet.Account, to common.Address, amount *big.Fl
 	return signedTx, nil
 }
 
-func (c *Client) SignTransaction(account wallet.Account, tx *types.Transaction) (*types.Transaction, error) {
+func (c *Client) SignTransaction(account *wallet.Account, tx *types.Transaction) (*types.Transaction, error) {
 	chainID, err := c.client.NetworkID(context.Background())
 	if err != nil {
 		return nil, err

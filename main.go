@@ -17,6 +17,7 @@ import (
 func main() {
 	//blockNumber := int64(36703824) // Example block number, change it to the block number you're interested in
 	//spew.Dump(blockchain.GetBlockTransactions(blockNumber))
+
 	var wal string
 	var oldDb string
 	flag.StringVar(&wal, "w", "", "encrypt wallet address private key")

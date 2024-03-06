@@ -146,7 +146,7 @@ func (c *Contract) TransferToken(from *wallet.Account, toAddress common.Address,
 	}
 
 	tx := types.NewTransaction(t.nonce, c.address, big.NewInt(0), t.gasLimit, t.gasPrice, data)
-	signedTx, err := c.SignTransaction(*from, tx)
+	signedTx, err := c.SignTransaction(from, tx)
 	if err != nil {
 		return nil, err
 	}

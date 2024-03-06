@@ -39,6 +39,7 @@ type TokenConfig struct {
 	Ratio   float64  `yaml:"ratio"`
 	Active  bool     `yaml:"active"`
 	Sleep   string   `yaml:"sleep"`
+	Counter int
 }
 
 func (t *TokenConfig) GetSleep() (time.Duration, error) {

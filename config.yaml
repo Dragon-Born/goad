@@ -7,7 +7,7 @@ telegram_bot:
 data_seed: https://bsc-dataseed.binance.org/
 
 database:
-  current_mode: test
+  current_mode: prod
   dbs:
     test:
       type: sqlite
@@ -34,6 +34,6 @@ tokens:
       - 2cefa8719bdd7e7a86a9e2ad1062136a8372362fa83bf5b193b8a27142a90231750d866c8bfb5e8699895b29bc87f7096f4029c672e46747a4822178d9d667f2
       # 0x9A5288d4CbD9B3a5de410f25b38Da0A64A16B2a5
       - 672347d149bec8fe754c5343eb606f3894648c5bb29e4042f1c36630fce0a8ab34358199cf8a7c5fcc4ca87c6baedf22284913a4ad208e2ee48a7aa3ee6543fb
-    ratio: 1.2
-    sleep: 10-66
+    ratio: 1.1
+    sleep: 20-120
     active: true
