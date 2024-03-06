@@ -186,7 +186,7 @@ func SendToken(token *yaml.TokenConfig) {
 			log.Errorf("[%s] All wallets are empty. wait 600 seconds", cColors.Sprint(name))
 			bot.Send(&tele.Chat{
 				ID: database.Config.TelegramBot.AnnounceChannel,
-			}, fmt.Sprintf("[%s] All wallets are empty", cColors.Sprint(name)))
+			}, fmt.Sprintf("❌ [%s] All wallets are empty ❌", cColors.Sprint(name)))
 			sleep = 600
 			continue
 		}
