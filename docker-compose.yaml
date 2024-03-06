@@ -1,0 +1,48 @@
+version: '3'
+networks:
+  net:
+    driver: bridge
+
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    expose:
+      - "3306"
+    networks:
+      - net
+    environment:
+      MYSQL_ROOT_PASSWORD: Arian1babaarian1BabaXXxX
+      MYSQL_PASSWORD: Arian1babaarian1BabaXXxX
+      MYSQL_DATABASE: neurashi
+      MYSQL_USER: neurashi
+
+    volumes:
+      - ./db:/var/lib/mysql
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - db
+    environment:
+#      PMA_ABSOLUTE_URI: http://dopaverse.org/db/
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 1G
+    restart: always
+    networks:
+      - net
+    ports:
+      - "8268:80"
+
+  app:
+    build:
+      context: .
+    restart: always
+    expose:
+      - 8080
+    networks:
+      - net
+    depends_on:
+      - db
