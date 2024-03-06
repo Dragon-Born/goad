@@ -21,7 +21,9 @@ func RunCron() (err error) {
 	}
 	log.Infof("Telegram bot %s @%s (%v) connected", bot.Me.FirstName, bot.Me.Username, bot.Me.ID)
 	for _, token := range database.Config.Tokens {
-		go SendToken(token)
+		if token.Active {
+			go SendToken(token)
+		}
 	}
 	getAllDexTransactionCron()
 	return

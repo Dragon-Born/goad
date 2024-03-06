@@ -172,8 +172,11 @@ func SendToken(token *yaml.TokenConfig) {
 		tokenWallet := getRandomWalletWithBalance(accounts, name, symbol, blockchain.AmountToBigInt(tokenAmount, 18), transCost)
 		if tokenWallet == nil {
 			sendMu.Unlock()
-			log.Errorf("All wallets are empty. wait 180 seconds")
-			sleep = 5
+			log.Errorf("[%s] All wallets are empty. wait 600 seconds", cColors.Sprint(name))
+			bot.Send(&tele.Chat{
+				ID: database.Config.TelegramBot.AnnounceChannel,
+			}, fmt.Sprintf("[%s] All wallets are empty", cColors.Sprint(name)))
+			sleep = 600
 			continue
 		}
 		amountBigInt := blockchain.AmountToBigInt(tokenAmount, 18)
