@@ -187,6 +187,8 @@ func SendToken(token *yaml.TokenConfig) {
 			bot.Send(&tele.Chat{
 				ID: database.Config.TelegramBot.AnnounceChannel,
 			}, fmt.Sprintf("❌ [%s] All wallets are empty ❌", cColors.Sprint(name)))
+			err = UpdateWalletsBalance(contract, accounts)
+
 			sleep = 600
 			continue
 		}
@@ -277,6 +279,7 @@ func getRandomWalletWithBalance(wallets []*wallet.Account, name, symbol string, 
 					log.Errorf("error sending telegram message: %v", err)
 				}
 				lastMessage[acc.Address()] = &now
+
 			}
 			continue
 		}
@@ -293,4 +296,34 @@ func getRandomWalletWithBalance(wallets []*wallet.Account, name, symbol string, 
 		}
 	}
 	return account
+}
+
+func UpdateWalletsBalance(contract *blockchain.Contract, wallets []*wallet.Account) (err error) {
+	name, err := contract.GetTokenName()
+	if err != nil {
+		return
+	}
+	symbol, err := contract.GetTokenSymbol()
+	if err != nil {
+		return
+	}
+	for _, w := range wallets {
+		var tokenBalance *big.Int
+		tokenBalance, err = contract.GetTokenBalance(w.Address())
+		if err != nil {
+			log.Errorf("Wallet (%v) failed to get %v token balance, %v", w.AddressMask(), name, err)
+			continue
+		}
+		w.SetTokenBalance(symbol, tokenBalance)
+		w.BNBBalance, err = contract.GetBalance(w.Address())
+		if err != nil {
+			log.Errorf("Wallet (%v) failed to get %v coin balance, %v", w.AddressMask(), name, err)
+			continue
+		}
+		tBalance := fmt.Sprintf("%s", blockchain.BigFloatToString(blockchain.BigIntToBigFloat(tokenBalance, 18)))
+		cBalance := fmt.Sprintf("%.4f BNB", blockchain.BigIntToAmount(w.BNBBalance, 18))
+		log.Infof("[%v] Wallet loaded: %v, balance: %s %v, %s", name, w.AddressMask(), tBalance, symbol, cBalance)
+
+	}
+	return
 }
