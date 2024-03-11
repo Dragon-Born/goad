@@ -59,7 +59,7 @@ func (c *Client) CalculateCost(tokenAddress common.Address) (*big.Int, error) {
 		return nil, err
 	}
 
-	gasLimitBigInt := big.NewInt(0).SetUint64(gasLimit + (gasLimit * 20 / 100))
+	gasLimitBigInt := big.NewInt(0).SetUint64(gasLimit + (gasLimit * 30 / 100))
 	totalCost := big.NewInt(0).Mul(gasPrice, gasLimitBigInt)
 
 	return totalCost, nil
