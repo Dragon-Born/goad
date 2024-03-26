@@ -72,6 +72,14 @@ func GetOneWalletWithoutTX() (*Wallet, error) {
 	return &wallet, nil
 }
 
+func (w *Wallet) GetBalance() (amount float64, err error) {
+	if !w.TotalBalance.Valid {
+		return 0, errors.New("balance is not set")
+	}
+	amount = float64(w.TotalBalance.Int64) / CoinRate
+	return
+}
+
 func (w *Wallet) GenerateAmount() (value float64, err error) {
 	balance, err := w.GetBalance()
 	if err != nil {
@@ -108,14 +116,6 @@ func (w *Wallet) SetBalance(amount float64) (err error) {
 		return err
 	}
 	err = DB.Save(w).Error
-	return
-}
-
-func (w *Wallet) GetBalance() (amount float64, err error) {
-	if !w.TotalBalance.Valid {
-		return 0, errors.New("balance is not set")
-	}
-	amount = float64(w.TotalBalance.Int64) / CoinRate
 	return
 }
 

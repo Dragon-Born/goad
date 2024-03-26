@@ -200,6 +200,7 @@ func SendToken(token *yaml.TokenConfig) {
 		if err != nil {
 			sendMu.Unlock()
 			log.Errorf("[%s] Wallet (%v) failed to send %s to address %s", cColors.Sprint(name), tokenWallet.AddressMask(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
+			err = UpdateWalletsBalance(contract, accounts)
 			continue
 		}
 		err = wal.AddTX(symbol, transferToken.Hash().String(), tokenAmount)
