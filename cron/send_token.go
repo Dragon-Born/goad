@@ -157,7 +157,7 @@ func SendToken(token *yaml.TokenConfig) {
 			sendMu.Unlock()
 			continue
 		}
-		airdropAmount *= token.Ratio
+		airdropAmount = airdropAmount * token.Ratio
 		currentPrice, err = contract.GetPrice()
 		if err != nil {
 			log.Errorf("Error getting token price of address: %v, %v wait for 180 seconds", token.Address, err)
@@ -232,7 +232,7 @@ func SendToken(token *yaml.TokenConfig) {
 		c := fmt.Sprintf("%.4f BNB", blockchain.BigIntToAmount(tokenWallet.BNBBalance, 18))
 		tBalance := tColors.Sprint(b)
 		cBalance := bColors.Sprint(c)
-		log.Infof("[%s] %d. %s sent to %s from %s remaining %s %v, %s, next in %ds", cColors.Sprint(name), token.Counter, tColors.Sprintf("$%.2f", airdropAmount), link, tokenWallet.AddressMask(), tBalance, cColors.Sprint(symbol), cBalance, sleep)
+		log.Infof("[%s] %d. %s sent to %s from %s remaining %s %v, %s, next in %ds, r: %f", cColors.Sprint(name), token.Counter, tColors.Sprintf("$%.2f", airdropAmount), link, tokenWallet.AddressMask(), tBalance, cColors.Sprint(symbol), cBalance, sleep, token.Ratio)
 		to := fmt.Sprintf("<a href='https://bscscan.com/address/%s'>%s</a>", wal.Address, wal.AddressMask(true))
 		_from := fmt.Sprintf("<a href='https://bscscan.com/address/%s'>%s</a>", tokenWallet.Address().String(), tokenWallet.AddressMask(true))
 		_tx := fmt.Sprintf("<a href='https://bscscan.com/tx/%s'>Transaction</a>", tx)
