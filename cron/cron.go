@@ -8,6 +8,7 @@ import (
 )
 
 var client *blockchain.Client
+var solClient *blockchain.SolClient
 var bot *tele.Bot
 
 func RunCron() (err error) {
@@ -15,6 +16,9 @@ func RunCron() (err error) {
 	if err != nil {
 		return err
 	}
+	solClient = blockchain.NewSolanaClient(
+		"https://api.mainnet-beta.solana.com",
+	)
 	bot, err = tele.NewBot(tele.Settings{Token: database.Config.TelegramBot.Token})
 	if err != nil {
 		return err
@@ -22,11 +26,19 @@ func RunCron() (err error) {
 	log.Infof("Telegram bot %s @%s (%v) connected", bot.Me.FirstName, bot.Me.Username, bot.Me.ID)
 	for _, token := range database.Config.Tokens {
 		if token.Active {
-			go SendToken(token)
+			if token.Chain == "bsc" {
+				go SendToken(token)
+			} else if token.Chain == "sol" {
+				go SendTokenSOL(token)
+			} else {
+				log.Fatalf("Unsupported chain %v", token.Chain)
+			}
 		} else {
 			log.Infof("Token %v is disabled", token.Address)
 		}
 	}
-	getAllDexTransactionCron()
+	go getAllDexTransactionCron()
+	getAllSolDexTransactionCron()
+
 	return
 }

@@ -4,7 +4,9 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	common2 "github.com/blocto/solana-go-sdk/common"
 	"github.com/fatih/color"
+	"github.com/gagliardetto/solana-go"
 	"math/big"
 	"strings"
 
@@ -17,6 +19,13 @@ type Account struct {
 	privateKey   *ecdsa.PrivateKey
 	tokenBalance map[string]*big.Int
 	BNBBalance   *big.Int
+}
+
+type SolAccount struct {
+	privateKey   solana.PrivateKey
+	nonceAccount common2.PublicKey
+	tokenBalance map[string]*big.Int
+	SOLBalance   *big.Int
 }
 
 func (a *Account) TokenBalance(symbol string) (balance *big.Int) {

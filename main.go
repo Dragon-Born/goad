@@ -8,7 +8,6 @@ import (
 	"goad/cron"
 	"goad/database"
 	"goad/pkg/encryption"
-	"goad/pkg/wallet"
 	"goad/watcher"
 )
 
@@ -29,11 +28,11 @@ func main() {
 	}
 	flag.Parse()
 	if wal != "" {
-		_, err := wallet.FromPrivateKey(wal)
-		if err != nil {
-			log.Error("error encrypting wallet private key: invalid wallet address\n")
-			return
-		}
+		//_, err := wallet.FromPrivateKey(wal)
+		//if err != nil {
+		//	log.Error("error encrypting wallet private key: invalid wallet address\n")
+		//	return
+		//}
 		hex, err := encryption.EncryptHex(wal, cron.Password)
 		if err != nil {
 			log.Errorf("[Error] error encrypting wallet private key: %v\n", err)

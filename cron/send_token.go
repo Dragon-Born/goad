@@ -3,6 +3,7 @@ package cron
 import (
 	"errors"
 	"fmt"
+	typesSol "github.com/blocto/solana-go-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -33,27 +34,51 @@ func SendToken(token *yaml.TokenConfig) {
 	cColors := color.New(color.FgHiMagenta)
 	tColors := color.New(color.FgGreen)
 	bColors := color.New(color.FgYellow)
-	if !common.IsHexAddress(token.Address) {
-		log.Fatalf("Invalid token address: %v", token.Address)
+	if token.Chain == "bsc" {
+		if !common.IsHexAddress(token.Address) {
+			log.Fatalf("Invalid token address: %v", token.Address)
+		}
+	} else if token.Chain == "sol" {
+		if _, err := typesSol.AccountFromBase58(token.Address); err != nil {
+			log.Fatalf("Invalid token address: %v", token.Address)
+		}
+	} else {
+		log.Fatalf("Invalid chain: %v", token.Chain)
 	}
 	//for !token.Active {
 	//	time.Sleep(1 * time.Second)
 	//}
-	contract := client.NewContract(common.HexToAddress(token.Address))
-	name, err := contract.GetTokenName()
-	if err != nil {
-		log.Fatalf("Error getting token name of address: %v", token.Address)
-		return
-	}
-	symbol, err := contract.GetTokenSymbol()
-	if err != nil {
-		log.Fatalf("Error getting token symbol of address: %v", token.Address)
-		return
-	}
-	currentPrice, err := contract.GetPrice()
-	if err != nil {
-		log.Fatalf("Error getting token price of address: %v, %v", token.Address, err)
-		return
+	var name string
+	var symbol string
+	var currentPrice float64
+	var err error
+	var BSCContract *blockchain.Contract
+	if token.Chain == "bsc" {
+		contract := client.NewContract(common.HexToAddress(token.Address))
+		BSCContract = contract
+		name, err = contract.GetTokenName()
+		if err != nil {
+			log.Fatalf("Error getting token name of address: %v", token.Address)
+			return
+		}
+		symbol, err = contract.GetTokenSymbol()
+		if err != nil {
+			log.Fatalf("Error getting token symbol of address: %v", token.Address)
+			return
+		}
+		currentPrice, err = contract.GetPrice()
+		if err != nil {
+			log.Fatalf("Error getting token price of address: %v, %v", token.Address, err)
+			return
+		}
+	} else if token.Chain == "sol" {
+		tokenInfo, err := blockchain.GetTokenInfoByMintAddress(token.Address)
+		if err != nil {
+			return
+		}
+		name = tokenInfo.Data.Name
+		symbol = tokenInfo.Data.Symbol
+		currentPrice = 0.0003
 	}
 	log.Infof("[%v] Token (%s) Loaded, current price: $%.6f", cColors.Sprint(name), cColors.Sprint(symbol), currentPrice)
 	var accounts []*wallet.Account
@@ -74,13 +99,13 @@ func SendToken(token *yaml.TokenConfig) {
 			continue
 		}
 		var tokenBalance *big.Int
-		tokenBalance, err = contract.GetTokenBalance(w.Address())
+		tokenBalance, err = BSCContract.GetTokenBalance(w.Address())
 		if err != nil {
 			log.Errorf("Wallet (%v) failed to get %v token balance, %v", w.AddressMask(), cColors.Sprint(name), err)
 			continue
 		}
 		w.SetTokenBalance(symbol, tokenBalance)
-		w.BNBBalance, err = contract.GetBalance(w.Address())
+		w.BNBBalance, err = BSCContract.GetBalance(w.Address())
 		if err != nil {
 			log.Errorf("Wallet (%v) failed to get %v coin balance, %v", w.AddressMask(), cColors.Sprint(name), err)
 			continue
@@ -103,7 +128,7 @@ func SendToken(token *yaml.TokenConfig) {
 		}
 		var wal *database.Wallet
 		sendMu.Lock()
-		wal, err = database.GetOneWalletWithoutTX()
+		wal, err = database.GetOneWalletWithoutTX(database.Binance)
 		if err != nil {
 			sendMu.Unlock()
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -158,7 +183,7 @@ func SendToken(token *yaml.TokenConfig) {
 			continue
 		}
 		airdropAmount = airdropAmount * token.Ratio
-		currentPrice, err = contract.GetPrice()
+		currentPrice, err = BSCContract.GetPrice()
 		if err != nil {
 			log.Errorf("Error getting token price of address: %v, %v wait for 180 seconds", token.Address, err)
 			sendMu.Unlock()
@@ -172,7 +197,7 @@ func SendToken(token *yaml.TokenConfig) {
 		airdropAmount = randomRange * airdropAmount
 		tokenAmount = airdrop.RandomizeDecimalCount(randomRange * airdropAmount / currentPrice)
 		var transCost *big.Int
-		transCost, err = contract.CalculateCost(common.HexToAddress(token.Address))
+		transCost, err = BSCContract.CalculateCost(common.HexToAddress(token.Address))
 		if err != nil {
 			sendMu.Unlock()
 			log.Errorf("Error getting preTransaction")
@@ -184,10 +209,9 @@ func SendToken(token *yaml.TokenConfig) {
 		if tokenWallet == nil {
 			sendMu.Unlock()
 			log.Errorf("[%s] All wallets are empty. wait 600 seconds", cColors.Sprint(name))
-			bot.Send(&tele.Chat{
-				ID: database.Config.TelegramBot.AnnounceChannel,
-			}, fmt.Sprintf("❌ [%s] All wallets are empty ❌", cColors.Sprint(name)))
-			err = UpdateWalletsBalance(contract, accounts)
+			bot.Send(&tele.Chat{ID: database.Config.TelegramBot.AnnounceChannel},
+				fmt.Sprintf("❌ [%s] All wallets are empty ❌", cColors.Sprint(name)))
+			err = UpdateWalletsBalance(BSCContract, accounts)
 
 			sleep = 600
 			continue
@@ -196,11 +220,11 @@ func SendToken(token *yaml.TokenConfig) {
 		amountBigFloat := blockchain.BigIntToBigFloat(amountBigInt, 18)
 		AmountString := blockchain.BigFloatToString(amountBigFloat)
 		var transferToken *types.Transaction
-		transferToken, err = contract.TransferToken(tokenWallet, common.HexToAddress(wal.Address), tokenAmount)
+		transferToken, err = BSCContract.TransferToken(tokenWallet, common.HexToAddress(wal.Address), tokenAmount)
 		if err != nil {
 			sendMu.Unlock()
 			log.Errorf("[%s] Wallet (%v) failed to send %s to address %s", cColors.Sprint(name), tokenWallet.AddressMask(), tColors.Sprintf("%s %s", AmountString, wal.Address), err)
-			err = UpdateWalletsBalance(contract, accounts)
+			err = UpdateWalletsBalance(BSCContract, accounts)
 			continue
 		}
 		err = wal.AddTX(symbol, transferToken.Hash().String(), tokenAmount)
@@ -213,14 +237,14 @@ func SendToken(token *yaml.TokenConfig) {
 		//tx := "non"
 
 		var tokenBalance *big.Int
-		tokenBalance, err = contract.GetTokenBalance(tokenWallet.Address())
+		tokenBalance, err = BSCContract.GetTokenBalance(tokenWallet.Address())
 		if err != nil {
 			sendMu.Unlock()
 			log.Errorf("Wallet (%v) failed to get %v token balance, %v", tokenWallet.AddressMask(), cColors.Sprint(symbol), err)
 			continue
 		}
 		tokenWallet.SetTokenBalance(symbol, tokenBalance)
-		tokenWallet.BNBBalance, err = contract.GetBalance(tokenWallet.Address())
+		tokenWallet.BNBBalance, err = BSCContract.GetBalance(tokenWallet.Address())
 		if err != nil {
 			sendMu.Unlock()
 			log.Errorf("Wallet (%v) failed to get %v coin balance, %v", tokenWallet.AddressMask(), cColors.Sprint(symbol), err)
@@ -233,8 +257,8 @@ func SendToken(token *yaml.TokenConfig) {
 		tBalance := tColors.Sprint(b)
 		cBalance := bColors.Sprint(c)
 		log.Infof("[%s] %d. %s sent to %s from %s remaining %s %v, %s, next in %ds, r: %f", cColors.Sprint(name), token.Counter, tColors.Sprintf("$%.2f", airdropAmount), link, tokenWallet.AddressMask(), tBalance, cColors.Sprint(symbol), cBalance, sleep, token.Ratio)
-		to := fmt.Sprintf("<a href='https://bscscan.com/address/%s'>%s</a>", wal.Address, wal.AddressMask(true))
-		_from := fmt.Sprintf("<a href='https://bscscan.com/address/%s'>%s</a>", tokenWallet.Address().String(), tokenWallet.AddressMask(true))
+		to := fmt.Sprintf("<a href='https://solscan.io/account/%s'>%s</a>", wal.Address, wal.AddressMask(true))
+		_from := fmt.Sprintf("<a href='https://solscan.io/account/%s'>%s</a>", tokenWallet.Address().String(), tokenWallet.AddressMask(true))
 		_tx := fmt.Sprintf("<a href='https://bscscan.com/tx/%s'>Transaction</a>", tx)
 		text := "✅ %s • %d • Next in %ds\n\n🔁 From: %s\n\n➡️ To: %s\n\n💰 Amount: %.3f %s ($%.3f) • %s\n\n📉 Remaining: %s • %s"
 		text = fmt.Sprintf(text, name, token.Counter, sleep, _from, to, tokenAmount, symbol, airdropAmount, _tx, b, c)

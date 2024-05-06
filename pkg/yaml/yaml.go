@@ -35,6 +35,8 @@ type DatabaseDB struct {
 
 type TokenConfig struct {
 	Address string   `yaml:"address"`
+	Price   float64  `yaml:"price"`
+	Chain   string   `yaml:"chain"`
 	Wallets []string `yaml:"wallets"`
 	Ratio   float64  `yaml:"ratio"`
 	Active  bool     `yaml:"active"`

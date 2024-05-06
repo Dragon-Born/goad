@@ -3,8 +3,10 @@ package blockchain
 import (
 	"encoding/hex"
 	"errors"
+	commonSol "github.com/blocto/solana-go-sdk/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+
 	"math/big"
 	"regexp"
 	"strings"
@@ -12,6 +14,13 @@ import (
 
 type DexTransaction struct {
 	From     common.Address
+	Method   string
+	Amount   *big.Int
+	GasPrice *big.Int
+}
+
+type SolDexTransaction struct {
+	From     commonSol.PublicKey
 	Method   string
 	Amount   *big.Int
 	GasPrice *big.Int

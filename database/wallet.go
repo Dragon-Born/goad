@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	common2 "github.com/blocto/solana-go-sdk/common"
 	"github.com/fatih/color"
 	"goad/pkg/airdrop"
 	"gorm.io/gorm"
@@ -14,6 +15,7 @@ type Wallet struct {
 	ID              uint           `gorm:"primarykey"`
 	Address         string         `gorm:"index;unique" json:"user_id"`
 	TotalBalance    sql.NullInt64  `token:"total_balance"`
+	Chain           string         `json:"chain" gorm:"index;type:varchar(10)"`
 	Token           sql.NullString `json:"token" gorm:"index;type:varchar(10)"`
 	Type            string         `json:"type" gorm:"index;type:varchar(10)"`
 	TX              sql.NullString `gorm:"type:varchar(100)" json:"tx"`
@@ -25,6 +27,11 @@ type Wallet struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+func (w *Wallet) SolAddress() common2.PublicKey {
+	return common2.PublicKeyFromString(w.Address)
+
+}
+
 func (w *Wallet) AddressMask(noColor ...bool) string {
 	maskAddress := w.Address
 	if noColor != nil && noColor[0] {
@@ -33,13 +40,21 @@ func (w *Wallet) AddressMask(noColor ...bool) string {
 	return color.CyanString(fmt.Sprintf("%s...%s", maskAddress[:6], maskAddress[len(maskAddress)-4:]))
 }
 
-func CreateUniqueWallet(address string, _type string) (wal *Wallet, err error) {
+type BlockChains string
+
+const (
+	Ethereum BlockChains = "ethereum"
+	Solana   BlockChains = "solana"
+	Binance  BlockChains = "binance"
+)
+
+func CreateUniqueWallet(address string, _type string, blockChain BlockChains) (wal *Wallet, err error) {
 	var count int64
 	DB.Model(&Wallet{}).Where("address = ?", address).Count(&count)
 	if count > 0 {
 		return nil, errors.New("a wallet with this address already exists")
 	}
-	wal = &Wallet{Address: address, Type: _type, Enabled: true}
+	wal = &Wallet{Address: address, Type: _type, Enabled: true, Chain: string(blockChain)}
 	if err = DB.Create(wal).Error; err != nil {
 		return nil, err
 	}
@@ -63,9 +78,9 @@ func GetWalletsWithoutTX() ([]Wallet, error) {
 	}
 	return wallets, nil
 }
-func GetOneWalletWithoutTX() (*Wallet, error) {
+func GetOneWalletWithoutTX(chain BlockChains) (*Wallet, error) {
 	var wallet Wallet
-	err := DB.Where("(TX IS NULL OR TX = ?) AND enabled = ?", "", true).Order(getRandF()).First(&wallet).Error
+	err := DB.Where("(TX IS NULL OR TX = ?) AND enabled = ? AND chain = ?", "", true, chain).Order(getRandF()).First(&wallet).Error
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +111,8 @@ func (w *Wallet) GenerateAmount() (value float64, err error) {
 		{Balance: 20, AirdropAmt: 3},
 		{Balance: 30, AirdropAmt: 4},
 		{Balance: 40, AirdropAmt: 5},
-		{Balance: 50, AirdropAmt: 10},
+		{Balance: 50, AirdropAmt: 6},
+		{Balance: 100, AirdropAmt: 10},
 	}
 	highestAmount := 0.0
 	for _, threshold := range thresholds {

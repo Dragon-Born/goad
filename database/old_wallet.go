@@ -34,7 +34,7 @@ func ImportOldDB() (count int, err error) {
 		return 0, err
 	}
 	for _, wallet := range wallets {
-		newWallet, err := CreateUniqueWallet(wallet.Address, "DEX")
+		newWallet, err := CreateUniqueWallet(wallet.Address, "DEX", "")
 		if err != nil {
 			log.Errorf("Could not create wallet %v, %v", wallet.Address, err)
 			continue
