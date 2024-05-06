@@ -20,7 +20,7 @@ import (
 	"math"
 )
 
-const mainnet = "https://serene-tiniest-shadow.solana-mainnet.quiknode.pro/94ec3fec398db09322993f26b3f33d905f82a004/"
+const mainnet = "https://api.mainnet-beta.solana.com"
 
 type SolClient struct {
 	privateKey   solana.PrivateKey
