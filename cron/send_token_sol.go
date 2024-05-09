@@ -234,6 +234,17 @@ func SendTokenSOL(token *yaml.TokenConfig) {
 		text := "✅ %s • %d • Next in %ds\n\n🔁 From: %s\n\n➡️ To: %s\n\n💰 Amount: %.3f %s ($%.3f) • %s\n\n📉 Remaining: %s • %s"
 		text = fmt.Sprintf(text, name, token.Counter, sleep, _from, to, tokenAmount, symbol, airdropAmount, _tx, b, c)
 		bot.Send(&tele.Chat{ID: database.Config.TelegramBot.AnnounceChannel}, text, tele.NoPreview, tele.ModeHTML)
+
+		// send to public tx channel
+		if tokenAmount > 5000 {
+			text = fmt.Sprintf("https://solscan.io/tx/%s\n↗️ Sent %f Jin 💥", tx, tokenAmount)
+			var _bot *tele.Bot
+			_bot, err = tele.NewBot(tele.Settings{Token: "6898034177:AAE7RL_nLJwiVjKNZEO-CE6t3zCMA62aTas"})
+			if err == nil {
+				_bot.Send(&tele.Chat{ID: database.Config.TelegramBot.AnnounceChannel}, text, tele.ModeHTML)
+			}
+
+		}
 		token.Counter++
 		sendMu.Unlock()
 		log.Debugf("Sleep for %d seconds", sleep)
