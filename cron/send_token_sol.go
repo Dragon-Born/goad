@@ -176,7 +176,7 @@ func SendTokenSOL(token *yaml.TokenConfig) {
 		//}
 		//log.Errorf("cost %v", transCost)
 
-		tokenWallet := getRandomWalletWithBalanceSol(accounts, name, symbol, tokenAmount, 0.00002)
+		tokenWallet := getRandomWalletWithBalanceSol(accounts, name, symbol, tokenAmount, 0.0002)
 		if tokenWallet == nil {
 			sendMu.Unlock()
 			log.Errorf("[%s] All wallets are empty. wait 600 seconds", cColors.Sprint(name))
