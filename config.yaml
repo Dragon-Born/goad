@@ -50,3 +50,13 @@ tokens:
     ratio: 1.0
     sleep: 50-200
     active: true
+
+  - address: Hs1RexWAYKk7g7x5qRkHhopbAhyVgeEvJG5HhiT6bmpg # RONELD
+    price: 0.00005
+    chain: sol
+    wallets:
+      # 5RV6WCAjUz89pxsddDkT1d8vvKou8jTVL8CqiEXRAWmp
+      - sq7t4nYT58yshthzKwWLF2GZ2VRmxBSoVFy5jbE8hiAvTbsGYngirFHsnXe2YWxot9aHYCtjkB6un3U8266hV2A
+    ratio: 1.0
+    sleep: 50-200
+    active: true
