@@ -127,7 +127,7 @@ func SendTokenSOL(token *yaml.TokenConfig) {
 		var balance float64
 		balance, err = blockchain.GetSolBalance(wal.SolAddress())
 		if err != nil {
-			log.Errorf("Could not get ballance of wallet %v, %s, wait for 180 seconds", wal.Address, err)
+			log.Errorf("[%s] Could not get ballance of wallet %v, %s, wait for 180 seconds", cColors.Sprint(name), wal.Address, err)
 			wal.Disable()
 			sendMu.Unlock()
 			sleep = 180
@@ -135,21 +135,21 @@ func SendTokenSOL(token *yaml.TokenConfig) {
 		}
 		bnbBalance := balance
 		if bnbBalance == 0 {
-			log.Warnf("Wallet (%v) balance is 0: %v", wal.Address, bnbBalance)
+			log.Warnf("[%s] Wallet (%v) balance is 0: %v", cColors.Sprint(name), wal.Address, bnbBalance)
 			wal.Disable()
 			sendMu.Unlock()
 			continue
 		}
 		err = wal.SetBalance(bnbBalance)
 		if err != nil {
-			log.Errorf("Could not set wallet Sol Balance: %v, balance: %v, %s", wal.Address, bnbBalance, err)
+			log.Errorf("[%s] Could not set wallet Sol Balance: %v, balance: %v, %s", cColors.Sprint(name), wal.Address, bnbBalance, err)
 			sendMu.Unlock()
 			continue
 		}
 		var airdropAmount float64
 		airdropAmount, err = wal.GenerateAmount()
 		if err != nil {
-			log.Errorf("Could not generate amount Balance: %v, balance: %v, %s", wal.Address, bnbBalance, err)
+			log.Errorf("[%s] Could not generate amount Balance: %v, balance: %v, %s", cColors.Sprint(name), wal.Address, bnbBalance, err)
 			sendMu.Unlock()
 			continue
 		}

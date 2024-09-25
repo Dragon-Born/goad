@@ -80,7 +80,7 @@ func GetWalletsWithoutTX() ([]Wallet, error) {
 }
 func GetOneWalletWithoutTX(chain BlockChains) (*Wallet, error) {
 	var wallet Wallet
-	err := DB.Where("(TX IS NULL OR TX = ?) AND enabled = ? AND chain = ?", "", true, chain).Order(getRandF()).First(&wallet).Error
+	err := DB.Where("(TX IS NULL OR TX = ?) AND enabled = ? AND chain = ?", "", true, chain).Order("id desc").Limit(1).First(&wallet).Error
 	if err != nil {
 		return nil, err
 	}

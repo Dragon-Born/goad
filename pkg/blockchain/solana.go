@@ -20,7 +20,9 @@ import (
 	"math"
 )
 
-const mainnet = "https://api.mainnet-beta.solana.com"
+const mainnet = "https://serene-tiniest-shadow.solana-mainnet.quiknode.pro/94ec3fec398db09322993f26b3f33d905f82a004"
+
+//const mainnet = "https://api.mainnet-beta.solana.com"
 
 type SolClient struct {
 	privateKey   solana.PrivateKey
@@ -387,7 +389,7 @@ func (w *SolClient) SendSLPToken(tokenAddr, receiver string, amount float64) (st
 
 	txhash, err := c.SendTransaction(context.Background(), tx)
 	if err != nil {
-		return "", errors.Join(errors.New("failed to send transaction"), err)
+		return "", err
 	}
 	return txhash, nil
 
