@@ -138,6 +138,7 @@ func SendTokenSOL(token *yaml.TokenConfig) {
 			log.Warnf("[%s] Wallet (%v) balance is 0: %v", cColors.Sprint(name), wal.Address, bnbBalance)
 			wal.Disable()
 			sendMu.Unlock()
+			sleep = 0
 			continue
 		}
 		err = wal.SetBalance(bnbBalance)
