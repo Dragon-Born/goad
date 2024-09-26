@@ -203,7 +203,7 @@ func SendToken(token *yaml.TokenConfig) {
 			log.Errorf("Error getting preTransaction")
 			continue
 		}
-		log.Errorf("cost %v", transCost)
+		//log.Errorf("cost %v", transCost)
 
 		tokenWallet := getRandomWalletWithBalance(accounts, name, symbol, blockchain.AmountToBigInt(tokenAmount, 18), transCost)
 		if tokenWallet == nil {

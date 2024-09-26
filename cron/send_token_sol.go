@@ -228,6 +228,11 @@ func SendTokenSOL(token *yaml.TokenConfig) {
 		c := fmt.Sprintf("%.4f Sol", tokenWallet.SOLBalance)
 		tBalance := tColors.Sprint(b)
 		cBalance := bColors.Sprint(c)
+		sleep, err = token.GetSleep()
+		if err != nil {
+			log.Errorf("Error getting token sleep time of address: %v, %v setting sleep to 180 seconds", token.Address, err)
+			sleep = 180
+		}
 		log.Infof("[%s] %d. %s sent to %s from %s remaining %s %v, %s, next in %ds, r: %f", cColors.Sprint(name), token.Counter, tColors.Sprintf("$%.2f", airdropAmount), link, tokenWallet.Address(), tBalance, cColors.Sprint(symbol), cBalance, sleep, token.Ratio)
 		to := fmt.Sprintf("<a href='https://solscan.io/account/%s'>%s</a>", wal.Address, wal.AddressMask(true))
 		_from := fmt.Sprintf("<a href='https://solscan.io/account/%s'>%s</a>", tokenWallet.Address().String(), tokenWallet.Address().String())
