@@ -56,10 +56,16 @@ func getAllSolDexTransactionCron() {
 			continue
 		}
 		for _, transaction := range transactions {
+			balance, err := blockchain.GetSolBalance(transaction.From)
+			if err != nil || balance == 0 {
+				time.Sleep(1 * time.Second)
+				continue
+			}
 			_, err = database.CreateUniqueWallet(transaction.From.String(), "DEX", database.Solana)
 			if err != nil {
 				existsWallet++
 			}
+			time.Sleep(1 * time.Second)
 		}
 		log.Debugf("[SOL] adding %d dex wallet from block %d, existed wallets: %d", len(transactions), currentBlock.BlockHeight, existsWallet)
 		time.Sleep(3 * time.Second)
